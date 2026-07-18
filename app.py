@@ -1,5 +1,6 @@
 import gc
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 from flask import Flask, render_template, request, jsonify
 
 from config import (
