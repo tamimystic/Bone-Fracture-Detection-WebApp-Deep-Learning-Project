@@ -7,6 +7,7 @@ _model = None
 
 def get_model():
     global _model
+
     if _model is not None:
         return _model
 
@@ -22,10 +23,11 @@ def get_model():
     model.to(DEVICE)
     model.eval()
 
-    torch.set_grad_enabled(False)
-
     for p in model.parameters():
-        p.requires_grad = False
+        p.requires_grad_(False)
 
     _model = model
     return _model
+
+def get_target_layer(model):
+    return model.features[-1]

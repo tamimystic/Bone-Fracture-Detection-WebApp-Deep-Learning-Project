@@ -10,6 +10,7 @@ class GradCAMPlusPlus:
         self.model = model
         self.activations = None
         self.gradients = None
+
         layer = get_target_layer(model)
         self.forward_handle = layer.register_forward_hook(self._forward_hook)
         self.backward_handle = layer.register_full_backward_hook(self._backward_hook)
@@ -47,8 +48,6 @@ class GradCAMPlusPlus:
         self.activations = None
         self.gradients = None
 
-        del grads, acts, grad2, grad3, denom, alpha, weights
-
         if DEVICE.type == "cuda":
             torch.cuda.empty_cache()
 
@@ -65,19 +64,32 @@ def get_gradcam(model):
 def overlay_heatmap(image, cam, alpha=GRADCAM_ALPHA):
     image = np.asarray(image)
     h, w = image.shape[:2]
+
     cam = cv2.resize(cam, (w, h))
     cam = np.uint8(cam * 255)
+
     heatmap = cv2.applyColorMap(cam, cv2.COLORMAP_JET)
     heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+
     return Image.fromarray(cv2.addWeighted(image, 1 - alpha, heatmap, alpha, 0))
 
 def save_gradcam(image, model, tensor, outputs, class_idx, save_path):
-    result = overlay_heatmap(image, get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx))
+    result = overlay_heatmap(
+        image,
+        get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx),
+    )
     result.save(save_path)
     return save_path
 
 def get_gradcam_image(image, model, tensor, outputs, class_idx):
-    return overlay_heatmap(image, get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx))
+    return overlay_heatmap(
+        image,
+        get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx),
+    )
 
 def get_heatmap(model, tensor, outputs, class_idx):
-    return get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx)
+    return get_gradcam(model).generate(
+        tensor.to(DEVICE),
+        outputs,
+        class_idx,
+    )

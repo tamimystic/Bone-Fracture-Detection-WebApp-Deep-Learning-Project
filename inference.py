@@ -24,11 +24,6 @@ def predict(image):
     probs = F.softmax(outputs, dim=1).squeeze().cpu().numpy()
     pred = get_prediction(probs, CLASS_NAMES)
 
-    del tensor, outputs
-
-    if DEVICE.type == "cuda":
-        torch.cuda.empty_cache()
-
     return {
         "prediction": pred["label"],
         "class_index": pred["index"],
@@ -37,7 +32,6 @@ def predict(image):
         "time": inference_time(start),
     }
 
-
 @torch.inference_mode()
 def predict_tensor(tensor):
     model = get_model()
@@ -45,21 +39,17 @@ def predict_tensor(tensor):
     outputs = model(tensor.to(DEVICE))
     probs = F.softmax(outputs, dim=1).squeeze().cpu().numpy()
 
-    result = {
+    return {
         "outputs": outputs,
         "class_index": int(probs.argmax()),
         "confidence": float(probs.max()),
         "probabilities": probs,
     }
 
-    return result
-
-
 @torch.inference_mode()
 def predict_from_path(path):
-    with Image.open(path).convert("RGB") as image:
-        return predict(image)
-
+    with Image.open(path) as image:
+        return predict(image.convert("RGB"))
 
 def predict_with_outputs(image):
     model = get_model()

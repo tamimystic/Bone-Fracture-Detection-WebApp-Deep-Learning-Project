@@ -2,9 +2,25 @@ import gc
 import os
 from flask import Flask, render_template, request, jsonify
 
-from config import APP_NAME, SECRET_KEY, MAX_CONTENT_LENGTH, HOST, PORT, DEBUG, GRADCAM_FOLDER
-from utils import allowed_file, save_upload, load_image, save_processed_image, image_info, clear_old_outputs
-from inference import predict_with_outputs, get_model
+from config import (
+    APP_NAME,
+    SECRET_KEY,
+    MAX_CONTENT_LENGTH,
+    HOST,
+    PORT,
+    DEBUG,
+    GRADCAM_FOLDER,
+)
+from utils import (
+    allowed_file,
+    save_upload,
+    load_image,
+    save_processed_image,
+    image_info,
+    clear_old_outputs,
+)
+from inference import predict_with_outputs
+from model import get_model
 from gradcam import save_gradcam
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -42,7 +58,6 @@ def predict():
         processed_name, _ = save_processed_image(image, filename)
 
         result = predict_with_outputs(image)
-
         model = get_model()
 
         gradcam_name = f"gradcam_{os.path.splitext(filename)[0]}.png"
@@ -61,6 +76,14 @@ def predict():
         del result["outputs"]
 
         gc.collect()
+
+        if os.getenv("CUDA_VISIBLE_DEVICES") is not None:
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+            except Exception:
+                pass
 
         return jsonify({
             "success": True,
