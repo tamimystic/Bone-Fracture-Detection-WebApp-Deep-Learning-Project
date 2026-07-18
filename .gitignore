@@ -1,1 +1,10 @@
 __pycache__
+
+static/gradcam/*
+!static/gradcam/.gitkeep
+
+static/processed/*
+!static/processed/.gitkeep
+
+static/uploads/*
+!static/uploads/.gitkeep
