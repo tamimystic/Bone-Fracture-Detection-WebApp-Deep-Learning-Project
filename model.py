@@ -23,9 +23,6 @@ def get_model():
     model.to(DEVICE)
     model.eval()
 
-    for p in model.parameters():
-        p.requires_grad_(False)
-
     _model = model
     return _model
 

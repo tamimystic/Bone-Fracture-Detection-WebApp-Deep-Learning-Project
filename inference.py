@@ -57,6 +57,7 @@ def predict_with_outputs(image):
     start = time.perf_counter()
 
     tensor = preprocess_image(image).to(DEVICE)
+    tensor.requires_grad_(True)
 
     with torch.enable_grad():
         outputs = model(tensor)
