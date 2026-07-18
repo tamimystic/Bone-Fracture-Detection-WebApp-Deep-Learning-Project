@@ -4,8 +4,8 @@
 Flask==3.1.2
 gunicorn==23.0.0
 
-torch==2.8.0
-torchvision==0.23.0
+torch
+torchvision
 
 numpy>=2.2,<2.3
 Pillow==11.3.0

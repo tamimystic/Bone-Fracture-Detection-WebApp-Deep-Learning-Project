@@ -74,7 +74,6 @@ def predict():
             image=image,
             model=model,
             tensor=result["tensor"],
-            outputs=result["outputs"],
             class_idx=result["class_index"],
             save_path=gradcam_path,
         )
