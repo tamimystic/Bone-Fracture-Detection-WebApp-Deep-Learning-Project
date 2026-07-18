@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ app_name }}</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<div class="container">
+
+<header class="hero">
+    <h1>Bone Fracture Detection</h1>
+    <p>Upload an X-ray image and detect bone fractures using a fine-tuned ResNet50 model with Grad-CAM++ and LIME visual explanations.</p>
+</header>
+
+<section class="upload-card">
+
+<form id="uploadForm" enctype="multipart/form-data">
+
+<div class="drop-area" id="dropArea">
+
+<input
+id="image"
+name="image"
+type="file"
+accept=".jpg,.jpeg,.png,.bmp,.tif,.tiff,.webp"
+hidden>
+
+<div class="drop-content">
+
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 16V4m0 0l-4 4m4-4l4 4M5 20h14"/>
+</svg>
+
+<h2>Upload X-ray Image</h2>
+
+<p>
+Drag & Drop your image here
+</p>
+
+<span>or</span>
+
+<button
+type="button"
+id="browseBtn"
+class="primary-btn">
+
+Browse Image
+
+</button>
+
+</div>
+
+</div>
+
+<div class="preview-box">
+
+<img
+id="preview"
+alt="Preview">
+
+<div
+id="previewPlaceholder"
+class="placeholder">
+
+No Image Selected
+
+</div>
+
+</div>
+
+<div class="actions">
+
+<button
+type="submit"
+class="predict-btn">
+
+Predict
+
+</button>
+
+<button
+type="button"
+id="resetBtn"
+class="reset-btn">
+
+Reset
+
+</button>
+
+</div>
+
+</form>
+
+</section>
+
+<section
+id="loading"
+class="loading hidden">
+
+<div class="spinner"></div>
+
+<h3>
+
+Analyzing Image
+
+</h3>
+
+<p>
+
+Please wait while the model processes the uploaded image...
+
+</p>
+
+</section>
+
+<section id="resultSection" class="result-section hidden">
+
+<div class="stats">
+
+<div class="stat-card">
+<h4>Prediction</h4>
+<h2 id="prediction">-</h2>
+</div>
+
+<div class="stat-card">
+<h4>Confidence</h4>
+<h2 id="confidence">-</h2>
+</div>
+
+<div class="stat-card">
+<h4>Inference Time</h4>
+<h2 id="time">-</h2>
+</div>
+
+</div>
+
+<div class="probability-card">
+
+<h3>Class Probabilities</h3>
+
+<table>
+
+<thead>
+
+<tr>
+<th>Class</th>
+<th>Probability</th>
+</tr>
+
+</thead>
+
+<tbody id="probabilityTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+<div class="image-grid">
+
+<div class="image-card">
+<h3>Original Image</h3>
+<img id="originalImage" alt="Original Image">
+</div>
+
+<div class="image-card">
+<h3>Processed Image</h3>
+<img id="processedImage" alt="Processed Image">
+</div>
+
+<div class="image-card">
+<h3>Grad-CAM++</h3>
+<img id="gradcamImage" alt="GradCAM">
+</div>
+
+<div class="image-card">
+<h3>LIME</h3>
+<img id="limeImage" alt="LIME">
+</div>
+
+</div>
+
+<div class="info-card">
+
+<h3>Image Information</h3>
+
+<div class="info-grid">
+
+<div>
+<span>Width</span>
+<strong id="width">-</strong>
+</div>
+
+<div>
+<span>Height</span>
+<strong id="height">-</strong>
+</div>
+
+<div>
+<span>Format</span>
+<strong id="format">-</strong>
+</div>
+
+<div>
+<span>Mode</span>
+<strong id="mode">-</strong>
+</div>
+
+<div>
+<span>Size</span>
+<strong id="size">-</strong>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<footer>
+
+<p>
+Powered by Flask • PyTorch • ResNet50 • Grad-CAM++ • LIME
+</p>
+
+</footer>
+
+</div>
+
+<script src="{{ url_for('static',filename='js/script.js') }}"></script>
+
+</body>
+</html>
