@@ -1,6 +1,6 @@
 import gc
 import os
-#os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+import torch
 from flask import Flask, render_template, request, jsonify
 
 from config import (
@@ -12,6 +12,7 @@ from config import (
     DEBUG,
     GRADCAM_FOLDER,
 )
+
 from utils import (
     allowed_file,
     save_upload,
@@ -20,6 +21,7 @@ from utils import (
     image_info,
     clear_old_outputs,
 )
+
 from inference import predict_with_outputs
 from model import get_model
 from gradcam import save_gradcam
@@ -28,12 +30,15 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
+
 def static_url(folder, filename):
     return f"/static/{folder}/{filename}"
+
 
 @app.route("/")
 def index():
     return render_template("index.html", app_name=APP_NAME)
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -42,13 +47,14 @@ def predict():
 
     file = request.files["image"]
 
-    if not file or file.filename == "":
+    if file.filename == "":
         return jsonify({"success": False, "message": "Please select an image."}), 400
 
     if not allowed_file(file.filename):
         return jsonify({"success": False, "message": "Unsupported image format."}), 400
 
     image = None
+    result = None
 
     try:
         clear_old_outputs()
@@ -73,20 +79,7 @@ def predict():
             save_path=gradcam_path,
         )
 
-        del result["tensor"]
-        del result["outputs"]
-
-        gc.collect()
-
-        if os.getenv("CUDA_VISIBLE_DEVICES") is not None:
-            try:
-                import torch
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
-            except Exception:
-                pass
-
-        return jsonify({
+        response = {
             "success": True,
             "prediction": result["prediction"],
             "confidence": result["confidence"],
@@ -98,27 +91,57 @@ def predict():
                 "processed": static_url("processed", processed_name),
                 "gradcam": static_url("gradcam", gradcam_name),
             },
-        })
+        }
+
+        return jsonify(response)
 
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        print(f"[ERROR] {e}")
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 500
 
     finally:
+        if result is not None:
+            result.pop("tensor", None)
+            result.pop("outputs", None)
+
         if image is not None:
-            image.close()
+            try:
+                image.close()
+            except Exception:
+                pass
+
         gc.collect()
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
 
 @app.errorhandler(404)
 def not_found(e):
-    return jsonify({"success": False, "message": "Page not found."}), 404
+    return jsonify({
+        "success": False,
+        "message": "Page not found."
+    }), 404
+
 
 @app.errorhandler(413)
 def file_too_large(e):
-    return jsonify({"success": False, "message": "Image size exceeds the allowed limit."}), 413
+    return jsonify({
+        "success": False,
+        "message": "Image size exceeds the allowed limit."
+    }), 413
+
 
 @app.errorhandler(500)
 def internal_error(e):
-    return jsonify({"success": False, "message": "Internal server error."}), 500
+    return jsonify({
+        "success": False,
+        "message": "Internal server error."
+    }), 500
+
 
 if __name__ == "__main__":
     app.run(host=HOST, port=PORT, debug=DEBUG)
