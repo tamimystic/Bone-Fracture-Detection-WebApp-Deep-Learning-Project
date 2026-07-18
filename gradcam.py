@@ -103,15 +103,23 @@ class GradCAMPlusPlus:
         self.gradients = None
 
 
-def get_heatmap(model, tensor, class_idx):
+def get_heatmap(model, image, class_idx):
     gradcam = GradCAMPlusPlus(model)
 
     try:
+        from utils import preprocess_image
+        from config import DEVICE
+        
+        tensor = preprocess_image(image).to(DEVICE)
+        tensor.requires_grad_(True)
+        
         outputs = model(tensor)
-        return gradcam.generate(
-            outputs,
-            class_idx,
-        )
+        
+        cam = gradcam.generate(outputs, class_idx)
+        
+        del tensor
+        del outputs
+        return cam
 
     finally:
         gradcam.close()
@@ -153,10 +161,10 @@ def overlay_heatmap(image, cam, alpha=GRADCAM_ALPHA):
     return Image.fromarray(blended)
 
 
-def get_gradcam_image(image, model, tensor, class_idx):
+def get_gradcam_image(image, model, class_idx):
     cam = get_heatmap(
         model,
-        tensor,
+        image,
         class_idx,
     )
 
@@ -166,11 +174,10 @@ def get_gradcam_image(image, model, tensor, class_idx):
     )
 
 
-def save_gradcam(image, model, tensor, class_idx, save_path):
+def save_gradcam(image, model, class_idx, save_path):
     result = get_gradcam_image(
         image,
         model,
-        tensor,
         class_idx,
     )
 

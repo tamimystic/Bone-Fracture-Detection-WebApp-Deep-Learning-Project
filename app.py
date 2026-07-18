@@ -22,7 +22,7 @@ from utils import (
     clear_old_outputs,
 )
 
-from inference import predict_with_outputs
+from inference import predict
 from model import get_model
 from gradcam import save_gradcam
 
@@ -64,7 +64,7 @@ def predict():
 
         processed_name, _ = save_processed_image(image, filename)
 
-        result = predict_with_outputs(image)
+        result = predict(image)
         model = get_model()
 
         gradcam_name = f"gradcam_{os.path.splitext(filename)[0]}.png"
@@ -73,7 +73,6 @@ def predict():
         save_gradcam(
             image=image,
             model=model,
-            tensor=result["tensor"],
             class_idx=result["class_index"],
             save_path=gradcam_path,
         )
@@ -102,10 +101,6 @@ def predict():
         }), 500
 
     finally:
-        if result is not None:
-            result.pop("tensor", None)
-            result.pop("outputs", None)
-
         if image is not None:
             try:
                 image.close()
