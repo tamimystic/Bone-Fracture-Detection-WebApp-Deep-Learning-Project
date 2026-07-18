@@ -1,38 +1,31 @@
 import torch
 import torch.nn as nn
-from torchvision.models import resnet50
-from config import MODEL_PATH, DEVICE, NUM_CLASSES
+from torchvision.models import efficientnet_b0
+from config import MODEL_PATH, NUM_CLASSES, DEVICE
 
-def build_model():
-    model = resnet50(weights=None)
-    model.fc = nn.Linear(model.fc.in_features, NUM_CLASSES)
-    return model
+_model = None
 
-def load_model():
-    model = build_model()
+def get_model():
+    global _model
+    if _model is not None:
+        return _model
 
-    state = torch.load(
-        MODEL_PATH,
-        map_location=DEVICE,
-        weights_only=True if torch.__version__ >= "2.0" else False
-    )
+    model = efficientnet_b0(weights=None)
+    model.classifier[1] = nn.Linear(model.classifier[1].in_features, NUM_CLASSES)
 
-    if isinstance(state, dict):
-        if "state_dict" in state:
-            state = state["state_dict"]
-        elif "model_state_dict" in state:
-            state = state["model_state_dict"]
+    try:
+        state = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True)
+    except TypeError:
+        state = torch.load(MODEL_PATH, map_location=DEVICE)
 
-    cleaned = {k.replace("module.", ""): v for k, v in state.items()}
-
-    model.load_state_dict(cleaned, strict=True)
+    model.load_state_dict(state)
     model.to(DEVICE)
     model.eval()
 
+    torch.set_grad_enabled(False)
+
     for p in model.parameters():
-        p.requires_grad_(False)
+        p.requires_grad = False
 
-    return model
-
-def get_target_layer(model):
-    return model.layer4[-1]
+    _model = model
+    return _model

@@ -5,15 +5,12 @@ from PIL import Image
 from config import DEVICE, GRADCAM_ALPHA
 from model import get_target_layer
 
-
 class GradCAMPlusPlus:
     def __init__(self, model):
         self.model = model
         self.activations = None
         self.gradients = None
-
         layer = get_target_layer(model)
-
         self.forward_handle = layer.register_forward_hook(self._forward_hook)
         self.backward_handle = layer.register_full_backward_hook(self._backward_hook)
 
@@ -25,8 +22,7 @@ class GradCAMPlusPlus:
 
     def generate(self, tensor, outputs, class_idx):
         self.model.zero_grad(set_to_none=True)
-
-        outputs[:, class_idx].backward(retain_graph=False)
+        outputs[:, class_idx].backward()
 
         grads = self.gradients
         acts = self.activations
@@ -40,10 +36,7 @@ class GradCAMPlusPlus:
         alpha = grad2 / (denom + 1e-7)
         weights = (alpha * torch.relu(grads)).sum(dim=(2, 3), keepdim=True)
 
-        cam = (weights * acts).sum(dim=1).squeeze()
-
-        cam = torch.relu(cam)
-
+        cam = torch.relu((weights * acts).sum(dim=1).squeeze())
         cam -= cam.min()
 
         if cam.max() > 0:
@@ -54,68 +47,37 @@ class GradCAMPlusPlus:
         self.activations = None
         self.gradients = None
 
+        del grads, acts, grad2, grad3, denom, alpha, weights
+
         if DEVICE.type == "cuda":
             torch.cuda.empty_cache()
 
         return cam
 
-
 _gradcam = None
-
 
 def get_gradcam(model):
     global _gradcam
-
     if _gradcam is None:
         _gradcam = GradCAMPlusPlus(model)
-
     return _gradcam
 
-
 def overlay_heatmap(image, cam, alpha=GRADCAM_ALPHA):
-    image = np.array(image)
-
+    image = np.asarray(image)
     h, w = image.shape[:2]
-
     cam = cv2.resize(cam, (w, h))
-
     cam = np.uint8(cam * 255)
-
     heatmap = cv2.applyColorMap(cam, cv2.COLORMAP_JET)
     heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
-
-    overlay = cv2.addWeighted(image, 1 - alpha, heatmap, alpha, 0)
-
-    return Image.fromarray(overlay)
-
+    return Image.fromarray(cv2.addWeighted(image, 1 - alpha, heatmap, alpha, 0))
 
 def save_gradcam(image, model, tensor, outputs, class_idx, save_path):
-    cam = get_gradcam(model).generate(
-        tensor.to(DEVICE),
-        outputs,
-        class_idx,
-    )
-
-    result = overlay_heatmap(image, cam)
-
+    result = overlay_heatmap(image, get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx))
     result.save(save_path)
-
     return save_path
 
-
 def get_gradcam_image(image, model, tensor, outputs, class_idx):
-    cam = get_gradcam(model).generate(
-        tensor.to(DEVICE),
-        outputs,
-        class_idx,
-    )
-
-    return overlay_heatmap(image, cam)
-
+    return overlay_heatmap(image, get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx))
 
 def get_heatmap(model, tensor, outputs, class_idx):
-    return get_gradcam(model).generate(
-        tensor.to(DEVICE),
-        outputs,
-        class_idx,
-    )
+    return get_gradcam(model).generate(tensor.to(DEVICE), outputs, class_idx)
