@@ -13,7 +13,7 @@ from utils import (
 )
 
 
-@torch.inference_mode()
+@torch.no_grad()
 def predict(image):
     model = get_model()
 
@@ -38,7 +38,7 @@ def predict(image):
     }
 
 
-@torch.inference_mode()
+@torch.no_grad()
 def predict_tensor(tensor):
     model = get_model()
 
@@ -59,7 +59,7 @@ def predict_tensor(tensor):
     return result
 
 
-@torch.inference_mode()
+@torch.no_grad()
 def predict_from_path(path):
     with Image.open(path) as image:
         return predict(image.convert("RGB"))
