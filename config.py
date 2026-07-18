@@ -13,20 +13,19 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 UPLOAD_FOLDER = os.path.join(STATIC_DIR, "uploads")
 PROCESSED_FOLDER = os.path.join(STATIC_DIR, "processed")
 GRADCAM_FOLDER = os.path.join(STATIC_DIR, "gradcam")
-LIME_FOLDER = os.path.join(STATIC_DIR, "lime")
 
 for folder in (
     MODEL_DIR,
     STATIC_DIR,
+    TEMPLATE_DIR,
     UPLOAD_FOLDER,
     PROCESSED_FOLDER,
     GRADCAM_FOLDER,
-    LIME_FOLDER,
-    TEMPLATE_DIR,
 ):
     os.makedirs(folder, exist_ok=True)
 
 APP_NAME = "Bone Fracture Detection"
+
 SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_hex(32))
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -68,17 +67,11 @@ CONFIDENCE_DECIMALS = 2
 
 GRADCAM_ALPHA = 0.45
 
-LIME_NUM_SAMPLES = 1000
-LIME_NUM_FEATURES = 8
-LIME_POSITIVE_ONLY = True
-LIME_HIDE_REST = False
-LIME_MIN_WEIGHT = 0.01
-
 HOST = "0.0.0.0"
-PORT = int(os.environ.get("PORT", 5000))
-DEBUG = os.getenv("FLASK_DEBUG", "False").lower() == "true"
+PORT = int(os.getenv("PORT", 5000))
+DEBUG = os.getenv("FLASK_DEBUG", "false").lower() == "true"
 
-TORCH_NUM_THREADS = max(os.cpu_count() // 2, 1)
+TORCH_NUM_THREADS = 1
 torch.set_num_threads(TORCH_NUM_THREADS)
 
 PREDICTION_LABELS = {

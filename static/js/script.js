@@ -14,7 +14,6 @@ probabilityTable=document.getElementById("probabilityTable"),
 originalImage=document.getElementById("originalImage"),
 processedImage=document.getElementById("processedImage"),
 gradcamImage=document.getElementById("gradcamImage"),
-limeImage=document.getElementById("limeImage"),
 widthField=document.getElementById("width"),
 heightField=document.getElementById("height"),
 formatField=document.getElementById("format"),
@@ -91,7 +90,6 @@ function updateImages(images){
     originalImage.src=images.original;
     processedImage.src=images.processed;
     gradcamImage.src=images.gradcam;
-    limeImage.src=images.lime;
 }
 
 function updateInfo(info){
@@ -99,7 +97,7 @@ function updateInfo(info){
     heightField.textContent=info.height;
     formatField.textContent=info.format;
     modeField.textContent=info.mode;
-    sizeField.textContent=info.size;
+    sizeField.textContent=info.size+" KB";
 }
 
 function resetUI(){
@@ -117,7 +115,6 @@ function resetUI(){
     originalImage.removeAttribute("src");
     processedImage.removeAttribute("src");
     gradcamImage.removeAttribute("src");
-    limeImage.removeAttribute("src");
 
     widthField.textContent="-";
     heightField.textContent="-";
@@ -133,37 +130,38 @@ function resetUI(){
 
 resetBtn.addEventListener("click",resetUI);
 
-form.addEventListener("submit", async e => {
+form.addEventListener("submit",async e=>{
     e.preventDefault();
 
-    if (!imageInput.files.length) {
+    if(!imageInput.files.length){
         alert("Please select an image.");
         return;
     }
 
-    const formData = new FormData();
-    formData.append("image", imageInput.files[0]);
+    const formData=new FormData();
+    formData.append("image",imageInput.files[0]);
 
     toggleResult(false);
     toggleLoading(true);
 
-    try {
-        const res = await fetch("/predict", {
-            method: "POST",
-            body: formData
+    try{
+
+        const res=await fetch("/predict",{
+            method:"POST",
+            body:formData
         });
 
-        const data = await res.json();
+        const data=await res.json();
 
         toggleLoading(false);
 
-        if (!res.ok || !data.success) {
-            throw new Error(data.message || "Prediction failed.");
+        if(!res.ok||!data.success){
+            throw new Error(data.message||"Prediction failed.");
         }
 
-        prediction.textContent = data.prediction;
-        confidence.textContent = `${data.confidence}%`;
-        time.textContent = data.time;
+        prediction.textContent=data.prediction;
+        confidence.textContent=`${data.confidence}%`;
+        time.textContent=data.time;
 
         updateProbabilityTable(data.probabilities);
         updateImages(data.images);
@@ -172,33 +170,39 @@ form.addEventListener("submit", async e => {
         toggleResult(true);
 
         resultSection.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
+            behavior:"smooth",
+            block:"start"
         });
 
-    } catch (err) {
+    }catch(err){
+
         toggleLoading(false);
         toggleResult(false);
-        alert(err.message || "Something went wrong.");
+
+        alert(err.message||"Something went wrong.");
+
     }
+
 });
 
-window.addEventListener("load", () => {
+window.addEventListener("load",()=>{
     toggleLoading(false);
     toggleResult(false);
 });
 
-window.addEventListener("dragover", e => e.preventDefault());
-window.addEventListener("drop", e => e.preventDefault());
+window.addEventListener("dragover",e=>e.preventDefault());
+window.addEventListener("drop",e=>e.preventDefault());
 
-["originalImage", "processedImage", "gradcamImage", "limeImage"].forEach(id => {
-    const img = document.getElementById(id);
+["originalImage","processedImage","gradcamImage"].forEach(id=>{
 
-    img.addEventListener("load", () => {
-        img.style.opacity = "1";
+    const img=document.getElementById(id);
+
+    img.addEventListener("load",()=>{
+        img.style.opacity="1";
     });
 
-    img.addEventListener("error", () => {
+    img.addEventListener("error",()=>{
         img.removeAttribute("src");
     });
+
 });
