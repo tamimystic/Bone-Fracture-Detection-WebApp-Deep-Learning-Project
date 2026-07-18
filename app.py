@@ -22,7 +22,7 @@ from utils import (
     clear_old_outputs,
 )
 
-from inference import predict
+from inference import predict as run_inference
 from model import get_model
 from gradcam import save_gradcam
 
@@ -64,7 +64,7 @@ def predict():
 
         processed_name, _ = save_processed_image(image, filename)
 
-        result = predict(image)
+        result = run_inference(image)
         model = get_model()
 
         gradcam_name = f"gradcam_{os.path.splitext(filename)[0]}.png"
