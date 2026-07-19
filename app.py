@@ -62,7 +62,6 @@ def predict():
         filename, image_path = save_upload(file)
         image = load_image(image_path)
 
-        processed_name, _ = save_processed_image(image, filename)
 
         result = run_inference(image)
         model = get_model()
@@ -86,7 +85,6 @@ def predict():
             "image_info": image_info(image_path),
             "images": {
                 "original": static_url("uploads", filename),
-                "processed": static_url("processed", processed_name),
                 "gradcam": static_url("gradcam", gradcam_name),
             },
         }

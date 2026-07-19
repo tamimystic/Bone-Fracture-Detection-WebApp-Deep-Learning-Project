@@ -12,7 +12,6 @@ confidence = document.getElementById("confidence"),
 time = document.getElementById("time"),
 probabilityTable = document.getElementById("probabilityTable"),
 originalImage = document.getElementById("originalImage"),
-processedImage = document.getElementById("processedImage"),
 gradcamImage = document.getElementById("gradcamImage"),
 widthField = document.getElementById("width"),
 heightField = document.getElementById("height"),
@@ -129,7 +128,6 @@ function updateImages(images){
 
     const imageList = [
         {element: originalImage, src: images.original},
-        {element: processedImage, src: images.processed},
         {element: gradcamImage, src: images.gradcam}
     ];
 
@@ -177,7 +175,7 @@ function resetUI(){
     confidence.textContent = "-";
     time.textContent = "-";
 
-    [originalImage, processedImage, gradcamImage].forEach(img => {
+    [originalImage, gradcamImage].forEach(img => {
         img.removeAttribute("src");
         img.style.opacity = "0";
     });
