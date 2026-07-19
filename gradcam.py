@@ -8,7 +8,7 @@ from config import DEVICE, GRADCAM_ALPHA
 from model import get_target_layer
 
 
-class GradCAMPlusPlus:
+class GradCAM:
     def __init__(self, model):
         self.model = model
         self.activations = None
@@ -104,7 +104,7 @@ class GradCAMPlusPlus:
 
 
 def get_heatmap(model, image, class_idx):
-    gradcam = GradCAMPlusPlus(model)
+    gradcam = GradCAM(model)
 
     try:
         from utils import preprocess_image
