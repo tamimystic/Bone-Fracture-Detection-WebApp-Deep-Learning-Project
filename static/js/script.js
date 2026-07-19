@@ -217,9 +217,14 @@ form.addEventListener("submit", async e => {
             body:formData
         });
 
-        const data = await response.json();
-
         toggleLoading(false);
+        
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
 
         if(!response.ok || !data.success){
             throw new Error(data.message || "Prediction failed.");

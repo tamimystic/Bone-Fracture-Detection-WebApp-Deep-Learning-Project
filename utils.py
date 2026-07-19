@@ -121,24 +121,30 @@ def remove_file(path):
         os.remove(path)
 
 
-def clear_directory(folder):
+def clear_directory(folder, max_age_seconds=300):
     if not os.path.exists(folder):
         return
 
+    current_time = time.time()
     for file in os.listdir(folder):
         path = os.path.join(folder, file)
 
-        if os.path.isfile(path):
-            os.remove(path)
+        try:
+            if os.path.isfile(path):
+                if current_time - os.path.getctime(path) > max_age_seconds:
+                    os.remove(path)
 
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
+            elif os.path.isdir(path):
+                if current_time - os.path.getctime(path) > max_age_seconds:
+                    shutil.rmtree(path)
+        except Exception:
+            pass
 
 
-def clear_old_outputs():
+def clear_old_outputs(max_age_seconds=300):
     for folder in (
         UPLOAD_FOLDER,
         PROCESSED_FOLDER,
         GRADCAM_FOLDER,
     ):
-        clear_directory(folder)
+        clear_directory(folder, max_age_seconds)
