@@ -2,6 +2,8 @@
 
 A deep learning-powered medical imaging web application designed to detect bone fractures from X-ray images. This project utilizes an EfficientNet-B0 model trained on medical data and features Gradient-weighted Class Activation Mapping (Grad-CAM) to provide transparent, explainable AI predictions.
 
+Live link : https://bone-fracture-detection-webapp.onrender.com
+
 ---
 
 ## Overview
